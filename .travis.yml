@@ -3,7 +3,6 @@ otp_release:
   - 17.0
   - 17.1
   - 17.3
-  - 17.4
 env:
   - ELIXIR="1.0.0"
 before_install:
