@@ -7,25 +7,25 @@ defmodule HttpRouter do
 
       method route [guard], handler, action
 
-  `method` is `get`, `post`, `put`, `patch`, or `delete`, each 
-  responsible for a single HTTP method. `method` can also be `any`, which will 
+  `method` is `get`, `post`, `put`, `patch`, or `delete`, each
+  responsible for a single HTTP method. `method` can also be `any`, which will
   match on all HTTP methods. `options` is yet another option for `method`, but
   when using `options`, only a route path and the methods that route path
-  supports are needed. `handler` is any valid Elixir module name, and 
+  supports are needed. `handler` is any valid Elixir module name, and
   `action` is any valid public function defined in the `handler` module.
 
-  `get/3`, `post/3`, `put/3`, `patch/3`, `delete/3`, `options/2`, and `any/3` 
-  are already built-in as described. `resource/2` exists but will need 
+  `get/3`, `post/3`, `put/3`, `patch/3`, `delete/3`, `options/2`, and `any/3`
+  are already built-in as described. `resource/2` exists but will need
   modifications to create everything as noted.
 
-  `raw/4` allows for using custom HTTP methods, allowing your application to be 
+  `raw/4` allows for using custom HTTP methods, allowing your application to be
   HTTP spec compliant.
 
-  `version/2` allows requests to contained endpoints when version exists in 
+  `version/2` allows requests to contained endpoints when version exists in
   either `Accept` header or URL (which ever is defined in the app config).
 
-  Extra routes will be added for `*.json`, `*.xml`, etc. requests for optionally 
-  specifying desired content type without the use of the `Accept` header. These 
+  Extra routes will be added for `*.json`, `*.xml`, etc. requests for optionally
+  specifying desired content type without the use of the `Accept` header. These
   match parsing/rendering abilities of HttpRouter.
 
   ## Example
@@ -37,7 +37,7 @@ defmodule HttpRouter do
         # with a simple version number "1"
         # or following semver "1.0.0"
         # or date of release "2014-09-06"
-        version "1" do 
+        version "1" do
           # Define your routes here
           get  "/",               Handlers.V1.Pages, :index
           get  "/pages",          Handlers.V1.Pages, :create
@@ -45,7 +45,7 @@ defmodule HttpRouter do
           put  "/pages/:page_id" when id == 1,
                                   Handlers.V1.Pages, :update_only_one
           get  "/pages/:page_id", Handlers.V1.Pages, :show
-          
+
           # Auto-create a full set of routes for resources
           #
           resource :users,        Handlers.V1.User, arg: :user_id
@@ -64,14 +64,14 @@ defmodule HttpRouter do
         end
 
         # An updated version of the AP
-        version "2" do 
+        version "2" do
           get  "/",               Handlers.V2.Pages,  :index
           post "/pages",          Handlers.V2.Pages,  :create
           get  "/pages/:page_id", Handlers.V2.Pages,  :show
           put  "/pages/:page_id", Handlers.V2.Pages,  :update
 
           raw :trace, "/trace",   Handlers.V2.Tracer, :trace
-          
+
           resource :users,        Handlers.V2.User
           resource :groups,       Handlers.V2.Group
         end
@@ -98,8 +98,8 @@ defmodule HttpRouter do
       # Plugs we want early in the stack
       # plug HttpRouter.Request.TranslateExtensions
       add_parsers = Application.get_env(:http_router, :parsers, [])
-      plug Plug.Parsers, parsers: [ :json, 
-                                    :urlencoded, 
+      plug Plug.Parsers, parsers: [ :json,
+                                    :urlencoded,
                                     :multipart ]
                                   ++ add_parsers
     end
@@ -110,11 +110,11 @@ defmodule HttpRouter do
     # Plugs we want predefined but aren't necessary to be before
     # user-defined plugs
     defaults = [ { Plug.Head, [], true },
-                 { Plug.MethodOverride, [], true },  
-                 { :copy_req_content_type, [], true }, 
+                 { Plug.MethodOverride, [], true },
+                 { :copy_req_content_type, [], true },
                  { :match, [], true },
                  { :dispatch, [], true } ]
-    { conn, body } = Enum.reverse(defaults) ++ 
+    { conn, body } = Enum.reverse(defaults) ++
                      Module.get_attribute(env.module, :plugs)
                      |> Plug.Builder.compile
 
@@ -150,7 +150,7 @@ defmodule HttpRouter do
       # Our default match so `Plug` doesn't fall on
       # its face when accessing an undefined route.
       def do_match(_,_) do
-        fn conn -> 
+        fn conn ->
           conn |> send_resp(404, "")
         end
       end
@@ -228,11 +228,11 @@ defmodule HttpRouter do
     arg     = Keyword.get opts, :arg, :id
     allowed = Keyword.get opts, :only, [ :index, :create, :show,
                                          :update, :patch, :delete ]
-    # mainly used by `version/2`                                         
+    # mainly used by `version/2`
     prepend_path = Keyword.get opts, :prepend_path, nil
     if prepend_path, do: prepend_path = "/" <> prepend_path <> "/"
 
-    routes  = 
+    routes  =
       [ { :get,     "#{prepend_path}#{resource}",          :index },
         { :post,    "#{prepend_path}#{resource}",          :create },
         { :get,     "#{prepend_path}#{resource}/:#{arg}",  :show },
@@ -274,9 +274,9 @@ defmodule HttpRouter do
   end
 
   defp ignore_args(str) do
-    str 
-      |> String.to_char_list 
-      |> do_ignore_args 
+    str
+      |> String.to_char_list
+      |> do_ignore_args
       |> to_string
   end
 
@@ -317,9 +317,9 @@ defmodule HttpRouter do
   # Builds a `do_match/2` function body for a given route.
   defp build_match(:options, route, allows, caller) do
     body = quote do
-        conn 
-          |> Plug.Conn.resp(200, "") 
-          |> Plug.Conn.put_resp_header("Allow", unquote(allows)) 
+        conn
+          |> Plug.Conn.resp(200, "")
+          |> Plug.Conn.put_resp_header("Allow", unquote(allows))
           |> Plug.Conn.send_resp
       end
 
@@ -358,7 +358,7 @@ defmodule HttpRouter do
 
     quote do
       opts = [ action: unquote(action), args: binding() ]
-      unquote(handler).call %{ conn | req_headers: unquote(header) ++ 
+      unquote(handler).call %{ conn | req_headers: unquote(header) ++
           conn.req_headers }, unquote(handler).init(opts)
     end
   end

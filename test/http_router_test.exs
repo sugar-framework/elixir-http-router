@@ -300,7 +300,7 @@ defmodule HttpRouterTest do
       raw :trace, "/trace",   Foo, :trace
 
       resource :users,    Bar
-      resource :comments, Baz, prepend_path: "/users/:user_id", 
+      resource :comments, Baz, prepend_path: "/users/:user_id",
                                only: [:index]
     end
 
