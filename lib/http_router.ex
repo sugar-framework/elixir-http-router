@@ -79,6 +79,7 @@ defmodule HttpRouter do
   """
 
   import HttpRouter.Util
+  alias Application, as: A
 
   @typep ast :: tuple
   @http_methods [ :get, :post, :put, :patch, :delete, :any ]
@@ -96,12 +97,13 @@ defmodule HttpRouter do
       Module.register_attribute(__MODULE__, :version, accumulate: false)
 
       # Plugs we want early in the stack
-      # plug HttpRouter.Request.TranslateExtensions
-      add_parsers = Application.get_env(:http_router, :parsers, [])
-      plug Plug.Parsers, parsers: [ :json,
-                                    :urlencoded,
-                                    :multipart ]
-                                  ++ add_parsers
+      parsers_opts = [ parsers: options[:parsers] ]
+      if :json in parsers_opts[:parsers] do
+        parsers_opts = parsers_opts
+                        |> Keyword.put(:json_decoder, options[:json_decoder])
+      end
+
+      plug Plug.Parsers, parsers_opts
     end
   end
 
@@ -109,11 +111,21 @@ defmodule HttpRouter do
   defmacro __before_compile__(env) do
     # Plugs we want predefined but aren't necessary to be before
     # user-defined plugs
-    defaults = [ { Plug.Head, [], true },
-                 { Plug.MethodOverride, [], true },
-                 { :copy_req_content_type, [], true },
-                 { :match, [], true },
+    defaults = [ { :match, [], true },
                  { :dispatch, [], true } ]
+
+    if options[:allow_copy_req_content_type] == true do
+      defaults = [ { :copy_req_content_type, [], true } | defaults ]
+    end
+
+    if options[:allow_method_override] == true do
+      defaults = [ { Plug.MethodOverride, [], true } | defaults ]
+    end
+
+    if options[:allow_head] == true do
+      defaults = [ { Plug.Head, [], true } | defaults ]
+    end
+
     { conn, body } = Enum.reverse(defaults) ++
                      Module.get_attribute(env.module, :plugs)
                      |> Plug.Builder.compile
@@ -129,13 +141,15 @@ defmodule HttpRouter do
 
       defoverridable [init: 1, call: 2]
 
-      def copy_req_content_type(conn, _opts) do
-        default = Application.get_env(:http_router, :default_content_type, "application/json; charset=utf-8")
-        content_type = case Plug.Conn.get_req_header conn, "content-type" do
-            [content_type] -> content_type
-            _ -> default
-          end
-        conn |> Plug.Conn.put_resp_header("content-type", content_type)
+      if options[:allow_copy_req_content_type] == true do
+        def copy_req_content_type(conn, _opts) do
+          default = options[:default_content_type]
+          content_type = case Plug.Conn.get_req_header conn, "content-type" do
+              [content_type] -> content_type
+              _ -> default
+            end
+          conn |> Plug.Conn.put_resp_header("content-type", content_type)
+        end
       end
 
       def match(conn, _opts) do
@@ -273,6 +287,19 @@ defmodule HttpRouter do
     end
   end
 
+  ## Private API
+
+  @app A.get_env(:http_router, :otp_app, :http_router)
+  @doc false
+  def options, do: [
+    allow_copy_req_content_type: A.get_env(@app, :allow_copy_req_content_type, true),
+    allow_head: A.get_env(@app, :allow_head, true),
+    allow_method_override: A.get_env(@app, :allow_method_override, true),
+    default_content_type: A.get_env(@app, :default_content_type, "text/html; charset=utf-8"),
+    json_decoder: A.get_env(@app, :json_decoder, Poison),
+    parsers: A.get_env(@app, :parsers, [:json, :urlencoded, :multipart])
+  ]
+
   defp ignore_args(str) do
     str
       |> String.to_char_list
@@ -377,9 +404,9 @@ defmodule HttpRouter do
   ## Grabbed from `Plug.Router`
 
   defp prep_match(method, route, caller) do
-    { method, guard } = convert_methods(List.wrap(method))
+    { method, guard } = method |> List.wrap |> convert_methods
     { path, guards }  = extract_path_and_guards(route, guard)
-    { vars, match }   = build_spec(Macro.expand(path, caller))
+    { vars, match }   = path |> Macro.expand(caller) |> build_spec
     { method, guards, vars, match }
   end
 
