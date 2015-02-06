@@ -79,25 +79,24 @@ defmodule HttpRouter do
   """
 
   import HttpRouter.Util
-  alias Application, as: A
 
   @typep ast :: tuple
   @http_methods [ :get, :post, :put, :patch, :delete, :any ]
 
-  @app A.get_env(:http_router, :otp_app, :http_router)
-  @options [
-    allow_copy_req_content_type: A.get_env(@app, :allow_copy_req_content_type, true),
-    allow_head: A.get_env(@app, :allow_head, true),
-    allow_method_override: A.get_env(@app, :allow_method_override, true),
-    default_content_type: A.get_env(@app, :default_content_type, "text/html; charset=utf-8"),
-    json_decoder: A.get_env(@app, :json_decoder, Poison),
-    parsers: A.get_env(@app, :parsers, [:json, :urlencoded, :multipart])
+  @default_options [
+    allow_copy_req_content_type: true,
+    allow_head: true,
+    allow_method_override: true,
+    default_content_type: "text/html; charset=utf-8",
+    json_decoder: Poison,
+    parsers: [:json, :urlencoded, :multipart]
   ]
 
   ## Macros
 
   @doc false
-  defmacro __using__(_) do
+  defmacro __using__(opts) do
+    opts = @default_options |> Keyword.merge(opts)
     quote do
       import HttpRouter
       import Plug.Builder, only: [plug: 1, plug: 2]
@@ -105,12 +104,13 @@ defmodule HttpRouter do
       @behaviour Plug
       Module.register_attribute(__MODULE__, :plugs, accumulate: true)
       Module.register_attribute(__MODULE__, :version, accumulate: false)
+      Module.put_attribute(__MODULE__, :options, unquote(opts))
 
       # Plugs we want early in the stack
-      parsers_opts = [ parsers: unquote(@options[:parsers]) ]
+      parsers_opts = [ parsers: unquote(opts[:parsers]) ]
       if :json in parsers_opts[:parsers] do
         parsers_opts = parsers_opts
-                        |> Keyword.put(:json_decoder, unquote(@options[:json_decoder]))
+                        |> Keyword.put(:json_decoder, unquote(opts[:json_decoder]))
       end
 
       plug Plug.Parsers, parsers_opts
@@ -119,20 +119,21 @@ defmodule HttpRouter do
 
   @doc false
   defmacro __before_compile__(env) do
+    options = Module.get_attribute(env.module, :options)
     # Plugs we want predefined but aren't necessary to be before
     # user-defined plugs
     defaults = [ { :match, [], true },
                  { :dispatch, [], true } ]
 
-    if @options[:allow_copy_req_content_type] == true do
+    if options[:allow_copy_req_content_type] == true do
       defaults = [ { :copy_req_content_type, [], true } | defaults ]
     end
 
-    if @options[:allow_method_override] == true do
+    if options[:allow_method_override] == true do
       defaults = [ { Plug.MethodOverride, [], true } | defaults ]
     end
 
-    if @options[:allow_head] == true do
+    if options[:allow_head] == true do
       defaults = [ { Plug.Head, [], true } | defaults ]
     end
 
@@ -151,9 +152,9 @@ defmodule HttpRouter do
 
       defoverridable [init: 1, call: 2]
 
-      if unquote(@options[:allow_copy_req_content_type]) == true do
+      if unquote(options[:allow_copy_req_content_type]) == true do
         def copy_req_content_type(conn, _opts) do
-          default = unquote(@options[:default_content_type])
+          default = unquote(options[:default_content_type])
           content_type = case Plug.Conn.get_req_header conn, "content-type" do
               [content_type] -> content_type
               _ -> default
