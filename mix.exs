@@ -3,7 +3,7 @@ defmodule HttpRouter.Mixfile do
 
   def project do
     [ app: :http_router,
-      version: "0.0.3",
+      version: "0.0.4",
       elixir: "~> 1.0",
       deps: deps,
       name: "HttpRouter",
@@ -21,7 +21,7 @@ defmodule HttpRouter.Mixfile do
   defp deps do
     [ { :cowboy, "~> 1.0.0" },
       { :plug, "~> 0.9.0" },
-      { :poison, "~> 1.2.0" },
+      { :poison, "~> 1.3.0" },
       { :xml_builder, "~> 0.0.5" },
       { :earmark, "~> 0.1.10", only: :docs },
       { :ex_doc, "~> 0.6.1", only: :docs },

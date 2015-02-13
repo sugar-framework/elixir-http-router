@@ -84,6 +84,7 @@ defmodule HttpRouter do
   @http_methods [ :get, :post, :put, :patch, :delete, :any ]
 
   @default_options [
+    add_match_details_to_private: true,
     allow_copy_req_content_type: true,
     allow_head: true,
     allow_method_override: true,
@@ -176,7 +177,7 @@ defmodule HttpRouter do
       # its face when accessing an undefined route.
       def do_match(_,_) do
         fn conn ->
-          conn |> send_resp(404, "")
+          conn |> Plug.Conn.send_resp(404, "")
         end
       end
 
@@ -300,6 +301,7 @@ defmodule HttpRouter do
 
   ## Private API
 
+  defp ignore_args(nil), do: ""
   defp ignore_args(str) do
     str
       |> String.to_char_list
@@ -353,9 +355,9 @@ defmodule HttpRouter do
     do_build_match :options, route, body, caller
   end
   defp build_match(method, route, handler, action, caller) do
-    body = build_body handler, action
-    # body_json = build_body handler, action, :json
-    # body_xml = build_body handler, action, :xml
+    body = build_body handler, action, caller
+    # body_json = build_body handler, action, caller, :json
+    # body_xml = build_body handler, action, caller, :xml
 
     [ #do_build_match(method, route <> ".json", body_json, caller),
       #do_build_match(method, route <> ".xml", body_xml, caller),
@@ -375,8 +377,8 @@ defmodule HttpRouter do
     end
   end
 
-  defp build_body(handler, action), do: build_body(handler, action, :skip)
-  defp build_body(handler, action, add_header) do
+  defp build_body(handler, action, caller), do: build_body(handler, action, caller, :skip)
+  defp build_body(handler, action, _caller, add_header) do
     header = case add_header do
         :json -> [{"accept", "application/json"}]
         :xml  -> [{"accept", "application/xml"}]
@@ -385,8 +387,14 @@ defmodule HttpRouter do
 
     quote do
       opts = [ action: unquote(action), args: binding() ]
-      unquote(handler).call %{ conn | req_headers: unquote(header) ++
-          conn.req_headers }, unquote(handler).init(opts)
+      private = conn.private
+                  |> Map.put(:controller, unquote(handler))
+                  |> Map.put(:handler, unquote(handler))
+                  |> Map.put(:action, unquote(action))
+
+      %{ conn | req_headers: unquote(header) ++ conn.req_headers,
+                private: private }
+        |> unquote(handler).call(unquote(handler).init(opts))
     end
   end
 
