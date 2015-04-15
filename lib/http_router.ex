@@ -151,8 +151,6 @@ defmodule HttpRouter do
         do_call(conn, opts)
       end
 
-      defoverridable [init: 1, call: 2]
-
       if unquote(options[:allow_copy_req_content_type]) == true do
         def copy_req_content_type(conn, _opts) do
           default = unquote(options[:default_content_type])
