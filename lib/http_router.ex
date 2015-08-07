@@ -138,9 +138,9 @@ defmodule HttpRouter do
       defaults = [ { Plug.Head, [], true } | defaults ]
     end
 
-    { conn, body } = Enum.reverse(defaults) ++
-                     Module.get_attribute(env.module, :plugs)
-                     |> Plug.Builder.compile
+    plugs = Enum.reverse(defaults) ++
+            Module.get_attribute(env.module, :plugs)
+    { conn, body } = env |> Plug.Builder.compile(plugs, [])
 
     quote do
       def init(opts) do
@@ -346,7 +346,7 @@ defmodule HttpRouter do
     body = quote do
         conn
           |> Plug.Conn.resp(200, "")
-          |> Plug.Conn.put_resp_header("Allow", unquote(allows))
+          |> Plug.Conn.put_resp_header("allow", unquote(allows))
           |> Plug.Conn.send_resp
       end
 
