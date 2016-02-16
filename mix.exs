@@ -3,7 +3,7 @@ defmodule HttpRouter.Mixfile do
 
   def project do
     [ app: :http_router,
-      version: "0.0.7",
+      version: "0.0.8",
       elixir: "~> 1.0",
       deps: deps,
       name: "HttpRouter",
@@ -39,8 +39,8 @@ defmodule HttpRouter.Mixfile do
   end
 
   defp package do
-    %{ contributors: [ "Shane Logsdon" ],
+    %{ maintainers: [ "Shane Logsdon" ],
        licenses: [ "MIT" ],
-       links: %{ "GitHub" => "https://github.com/slogsdon/elixir-http-router" } }
+       links: %{ "GitHub" => "https://github.com/sugar-framework/elixir-http-router" } }
   end
 end
