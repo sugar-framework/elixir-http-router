@@ -109,10 +109,13 @@ defmodule HttpRouter do
 
       # Plugs we want early in the stack
       parsers_opts = [ parsers: unquote(opts[:parsers]) ]
-      if :json in parsers_opts[:parsers] do
-        parsers_opts = parsers_opts
-                        |> Keyword.put(:json_decoder, unquote(opts[:json_decoder]))
-      end
+      parsers_opts =
+        if :json in parsers_opts[:parsers] do
+          parsers_opts
+            |> Keyword.put(:json_decoder, unquote(opts[:json_decoder]))
+        else
+          parsers_opts
+        end
 
       plug Plug.Parsers, parsers_opts
     end
@@ -126,17 +129,26 @@ defmodule HttpRouter do
     defaults = [ { :match, [], true },
                  { :dispatch, [], true } ]
 
-    if options[:allow_copy_req_content_type] == true do
-      defaults = [ { :copy_req_content_type, [], true } | defaults ]
-    end
+    defaults =
+      if options[:allow_copy_req_content_type] == true do
+        [ { :copy_req_content_type, [], true } | defaults ]
+      else
+        defaults
+      end
 
-    if options[:allow_method_override] == true do
-      defaults = [ { Plug.MethodOverride, [], true } | defaults ]
-    end
+    defaults =
+      if options[:allow_method_override] == true do
+        [ { Plug.MethodOverride, [], true } | defaults ]
+      else
+        defaults
+      end
 
-    if options[:allow_head] == true do
-      defaults = [ { Plug.Head, [], true } | defaults ]
-    end
+    defaults =
+      if options[:allow_head] == true do
+        [ { Plug.Head, [], true } | defaults ]
+      else
+        defaults
+      end
 
     plugs = Enum.reverse(defaults) ++
             Module.get_attribute(env.module, :plugs)
@@ -254,7 +266,12 @@ defmodule HttpRouter do
                                          :update, :patch, :delete ]
     # mainly used by `version/2`
     prepend_path = Keyword.get opts, :prepend_path, nil
-    if prepend_path, do: prepend_path = "/" <> prepend_path <> "/"
+    prepend_path =
+      if prepend_path do
+      "/" <> prepend_path <> "/"
+      else
+        prepend_path
+      end
 
     routes  =
       [ { :get,     "#{prepend_path}#{resource}",          :index },
