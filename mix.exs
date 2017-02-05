@@ -5,10 +5,10 @@ defmodule HttpRouter.Mixfile do
     [ app: :http_router,
       version: "0.10.0",
       elixir: "~> 1.0",
-      deps: deps,
+      deps: deps(),
       name: "HttpRouter",
-      package: package,
-      description: description,
+      package: package(),
+      description: description(),
       docs: [ main: "HttpRouter" ],
       test_coverage: [ tool: ExCoveralls ] ]
   end
