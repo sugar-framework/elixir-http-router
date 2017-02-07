@@ -25,6 +25,7 @@ defmodule HttpRouter.Mixfile do
       { :xml_builder, "~> 0.0" },
       { :earmark, "~> 1.0", only: :dev },
       { :ex_doc, "~> 0.14", only: :dev },
+      { :credo, "~> 0.5", only: [:dev, :test] },
       { :excoveralls, "~> 0.5", only: :test },
       { :dialyze, "~> 0.2", only: :test } ]
   end

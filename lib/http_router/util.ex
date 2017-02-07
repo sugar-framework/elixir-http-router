@@ -1,16 +1,22 @@
 defmodule HttpRouter.Util do
+  @moduledoc false
+
   defmodule InvalidSpecError do
+    @moduledoc false
     defexception message: "invalid route specification"
   end
 
+  @spec normalize_method(binary) :: binary
   def normalize_method(method) do
     method |> to_string |> String.upcase
   end
 
+  @spec split(binary) :: binary
   def split(bin) do
     for segment <- String.split(bin, "/"), segment != "", do: segment
   end
 
+  @spec build_spec(binary, any) :: {list, list}
   def build_spec(spec, context \\ nil)
   def build_spec(spec, context) when is_binary(spec) do
     build_spec split(spec), context, [], []
@@ -57,7 +63,9 @@ defmodule HttpRouter.Util do
     underscore = {:_, [], context}
     identifier = binary_to_identifier("*", argument)
     expr = quote_if_buffer identifier, buffer, context, fn var ->
-      quote do: [unquote(buffer) <> unquote(underscore)|unquote(underscore)] = unquote(var)
+      quote do:
+        [unquote(buffer) <> unquote(underscore)|unquote(underscore)]
+          = unquote(var)
     end
     {:glob, identifier, expr}
   end
@@ -75,12 +83,14 @@ defmodule HttpRouter.Util do
     fun.({identifier, [], context})
   end
 
-  defp binary_to_identifier(prefix, <<letter, _::binary>> = binary) when letter in ?a..?z
-                                                                      or letter == ?_ do
+  defp binary_to_identifier(prefix, <<letter, _::binary>> = binary)
+    when letter in ?a..?z
+      or letter == ?_ do
     if binary =~ ~r/^\w+$/ do
       String.to_atom(binary)
     else
-      raise InvalidSpecError, message: "#{prefix}identifier in routes must be made of letters, numbers and underscore"
+      raise InvalidSpecError,
+        message: "#{prefix}identifier in routes must be made of letters, numbers and underscore"
     end
   end
   defp binary_to_identifier(prefix, _) do
