@@ -83,7 +83,6 @@ defmodule HttpRouter do
 
   import HttpRouter.Util
 
-  @typep ast :: tuple
   @http_methods [:get, :post, :put, :patch, :delete, :any]
 
   @default_options [
@@ -236,7 +235,7 @@ defmodule HttpRouter do
     * `handler` - `Atom`
     * `action` - `Atom`
     """
-    @spec unquote(verb)(binary | list, atom, atom) :: ast
+    @spec unquote(verb)(binary | list, atom, atom) :: Macro.t
     defmacro unquote(verb)(route, handler, action) do
       build_match unquote(verb), route, handler, action, __CALLER__
     end
@@ -250,7 +249,7 @@ defmodule HttpRouter do
   * `route` - `String|List`
   * `allows` - `String`
   """
-  @spec options(binary | list, binary) :: ast
+  @spec options(binary | list, binary) :: Macro.t
   defmacro options(route, allows) do
     build_match :options, route, allows, __CALLER__
   end
@@ -265,7 +264,7 @@ defmodule HttpRouter do
   * `handler` - `Atom`
   * `action` - `Atom`
   """
-  @spec raw(atom, binary | list, atom, atom) :: ast
+  @spec raw(atom, binary | list, atom, atom) :: Macro.t
   defmacro raw(method, route, handler, action) do
     build_match method, route, handler, action, __CALLER__
   end
@@ -290,7 +289,7 @@ defmodule HttpRouter do
       options, "/users",      "HEAD,GET,POST"
       options, "/users/:_id", "HEAD,GET,PUT,PATCH,DELETE"
   """
-  @spec resource(atom, atom, Keyword.t) :: [ast]
+  @spec resource(atom, atom, Keyword.t) :: Macro.t
   defmacro resource(resource, handler, opts \\ []) do
     arg     = Keyword.get opts, :arg, :id
     allowed = Keyword.get opts, :only, [:index, :create, :show,
@@ -318,7 +317,7 @@ defmodule HttpRouter do
 
   * `version` - `String`
   """
-  @spec version(binary, any) :: ast | [ast]
+  @spec version(binary, any) :: Macro.t
   defmacro version(version, do: body) do
     body = update_body_with_version body, version
     quote do
@@ -449,8 +448,8 @@ defmodule HttpRouter do
   defp build_body(handler, action, caller), do: build_body(handler, action, caller, :skip)
   defp build_body(handler, action, _caller, add_header) do
     header = case add_header do
-        :json -> [{"accept", "application/json"}]
-        :xml  -> [{"accept", "application/xml"}]
+        # :json -> [{"accept", "application/json"}]
+        # :xml  -> [{"accept", "application/xml"}]
         _     -> []
       end
 

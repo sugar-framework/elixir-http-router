@@ -11,7 +11,7 @@ defmodule HttpRouter.Util do
     method |> to_string |> String.upcase
   end
 
-  @spec split(binary) :: binary
+  @spec split(binary) :: [binary]
   def split(bin) do
     for segment <- String.split(bin, "/"), segment != "", do: segment
   end
