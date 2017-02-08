@@ -1,8 +1,8 @@
 # HttpRouter
-[![Build Status](https://img.shields.io/travis/slogsdon/elixir-http-router.svg?style=flat)](https://travis-ci.org/slogsdon/elixir-http-router)
-[![Coverage Status](https://img.shields.io/coveralls/slogsdon/elixir-http-router.svg?style=flat)](https://coveralls.io/r/slogsdon/elixir-http-router)
+[![Build Status](https://img.shields.io/travis/sugar-framework/elixir-http-router.svg?style=flat)](https://travis-ci.org/sugar-framework/elixir-http-router)
+[![Coverage Status](https://img.shields.io/coveralls/sugar-framework/elixir-http-router.svg?style=flat)](https://coveralls.io/r/sugar-framework/elixir-http-router)
 [![Hex.pm Version](http://img.shields.io/hexpm/v/http_router.svg?style=flat)](https://hex.pm/packages/http_router)
-[![Inline docs](http://inch-ci.org/github/slogsdon/elixir-http-router.svg?branch=master)](http://inch-ci.org/github/slogsdon/elixir-http-router)
+[![Inline docs](http://inch-ci.org/github/sugar-framework/elixir-http-router.svg?branch=master)](http://inch-ci.org/github/sugar-framework/elixir-http-router)
 
 > HTTP Router with various macros to assist in
 > developing your application and organizing
@@ -131,4 +131,4 @@ HttpRouter is released under the MIT License.
 See [LICENSE](license) for details.
 
 [plug]: https://github.com/elixir-lang/plug
-[license]: https://github.com/slogsdon/elixir-http-router/blob/master/LICENSE
+[license]: https://github.com/sugar-framework/elixir-http-router/blob/master/LICENSE
