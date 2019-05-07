@@ -368,7 +368,7 @@ defmodule HttpRouter do
   defp ignore_args(nil), do: ""
   defp ignore_args(str) do
     str
-      |> String.to_char_list
+      |> String.to_charlist
       |> do_ignore_args
       |> to_string
   end
