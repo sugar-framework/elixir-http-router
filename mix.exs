@@ -19,15 +19,17 @@ defmodule HttpRouter.Mixfile do
   end
 
   defp deps do
-    [ { :cowboy, "~> 1.0" },
-      { :plug, "~> 1.0" },
-      { :poison, "~> 3.0" },
-      { :xml_builder, "~> 0.0" },
-      { :earmark, "~> 1.0", only: :dev },
-      { :ex_doc, "~> 0.14", only: :dev },
-      { :credo, "~> 0.5", only: [:dev, :test] },
-      { :excoveralls, "~> 0.5", only: :test },
-      { :dialyze, "~> 0.2", only: :test } ]
+    [
+      {:cowboy, "~> 1.0"},
+      {:plug, "~> 1.0"},
+      {:poison, "~> 3.0"},
+      {:xml_builder, "~> 2.3"},
+      {:earmark, "~> 1.0", only: :dev},
+      {:ex_doc, "~> 0.14", only: :dev},
+      {:credo, "~> 0.5", only: [:dev, :test]},
+      {:excoveralls, "~> 0.5", only: :test},
+      {:dialyze, "~> 0.2", only: :test}
+    ]
   end
 
   defp description do
